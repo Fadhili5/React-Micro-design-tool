@@ -1,8 +1,8 @@
 # React Micro Design Tool
 
-A lightweight browser-based graphic editor built with React and SVG. Move, resize, rotate, and recolor basic shapes — a minimal design canvas.
+A browser-based graphic editor built with React 18 and SVG. Select, move, resize, rotate, and recolor basic shapes on a shared canvas. Works on desktop and mobile.
 
-## Clone, Install & Run
+## Getting Started
 
 ```bash
 git clone https://github.com/fadhili5/react-micro-design-tool.git
@@ -11,63 +11,128 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** in your browser.
+Open the local URL printed by Vite (default: `http://localhost:5173`).
 
-## Supported Objects & Modifications
+## Features
 
-| Object    | Move | Resize (8 handles) | Rotate | Fill | Stroke | Opacity | Layer order |
-|-----------|------|--------------------|--------|------|--------|---------|-------------|
-| Rectangle | ✅   | ✅                 | ✅     | ✅   | ✅     | ✅      | ✅          |
-| Ellipse   | ✅   | ✅                 | ✅     | ✅   | ✅     | ✅      | ✅          |
-| Triangle  | ✅   | ✅                 | ✅     | ✅   | ✅     | ✅      | ✅          |
-| Text      | ✅   | ✅ (bbox)          | ✅     | ✅   | —      | ✅      | ✅          |
+**Shapes** — Rectangle, Ellipse, Triangle, Text
 
-All objects also support numeric property editing (X, Y, W, H, rotation°) in the panel.
+**Per-shape properties**
+- Position (X, Y) and size (W, H) — drag or type exact values
+- Rotation — drag the circular handle or type degrees
+- Fill color and stroke color (toggle stroke on/off)
+- Opacity
+- Layer order (bring to front / send to back)
+- Text content and font size (text shapes only)
+
+**Canvas**
+- Click or tap an empty area to deselect
+- 8 resize handles per shape, 1 rotation handle
+- Drag works outside the canvas boundary (mouse does not need to stay inside)
 
 ## Controls
 
-| Action | Mouse | Touch |
-|--------|-------|-------|
-| Select tool | Click toolbar or press **V** | Tap toolbar |
-| Add shape | Press shortcut, click canvas | Tap tool, tap canvas |
-| Move | Drag shape | One-finger drag |
-| Resize | Drag any of the 8 square handles | One-finger drag handle |
-| Rotate | Drag circular handle above shape | One-finger drag rotation handle |
-| Edit text | Type in Content field in panel | Tap Content field, type |
-| Delete | **Delete** / **Backspace**, or panel button | Tap panel button |
-| Deselect | Click empty canvas or **Esc** | Tap empty canvas |
+### Desktop
 
-**Keyboard shortcuts (desktop):** V=select · R=rect · E=ellipse · T=triangle · X=text · Del=delete · Esc=deselect
+| Action | Input |
+|--------|-------|
+| Select tool | Click toolbar or press `V` |
+| Rectangle | `R` or toolbar |
+| Ellipse | `E` or toolbar |
+| Triangle | `T` or toolbar |
+| Text | `X` or toolbar |
+| Move shape | Drag |
+| Resize | Drag any of the 8 square handles |
+| Rotate | Drag the circular handle above the shape |
+| Delete | `Delete` / `Backspace`, or the panel button |
+| Deselect | Click empty canvas or `Esc` |
 
-## Build for Production
+### Mobile
+
+The layout switches to a full-screen canvas with a floating toolbar at the bottom and a slide-up properties drawer when a shape is selected.
+
+| Action | Input |
+|--------|-------|
+| Add shape | Tap a tool button in the bottom toolbar |
+| Select | Tap a shape |
+| Move | One-finger drag |
+| Resize / Rotate | One-finger drag on a handle |
+| Edit properties | Tap a shape to open the properties drawer |
+| Delete | Tap Delete in the properties drawer |
+| Deselect | Tap empty canvas or tap Done in the header |
+
+## Supported Modifications by Shape
+
+| Property | Rect | Ellipse | Triangle | Text |
+|----------|------|---------|----------|------|
+| Move | yes | yes | yes | yes |
+| Resize (8 handles) | yes | yes | yes | yes (bbox) |
+| Rotate | yes | yes | yes | yes |
+| Fill | yes | yes | yes | yes |
+| Stroke | yes | yes | yes | no |
+| Opacity | yes | yes | yes | yes |
+| Layer order | yes | yes | yes | yes |
+| Text content | no | no | no | yes |
+| Font size | no | no | no | yes |
+
+## Build
 
 ```bash
-npm run build    # outputs to dist/
-npm run preview  # serve production build locally
+npm run build    # production build, output in dist/
+npm run preview  # serve the production build locally
 ```
 
-## Browser & Device Support
+## Deployment
 
-| Platform | Tested on | Status |
-|----------|-----------|--------|
-| Desktop Chrome | 120+ | ✅ Full support |
-| Desktop Firefox | 121+ | ✅ Full support |
-| Desktop Safari | 17+ | ✅ Full support |
-| Mobile Chrome (Android) | 120+ | ✅ Touch supported |
-| Mobile Safari (iOS) | 17+ | ✅ Touch supported |
+Deploy the `dist/` folder to any static host. On Vercel:
+- Framework: Vite
+- Root directory: leave blank (project root)
+- Build command: `npm run build`
+- Output directory: `dist`
 
-> The layout (toolbar + canvas + properties panel) is optimised for landscape or tablet-sized screens. On a narrow phone the properties panel may overflow — scroll horizontally or rotate to landscape.
+## Browser Support
+
+| Platform | Version | Notes |
+|----------|---------|-------|
+| Chrome (desktop) | 120+ | Full support |
+| Firefox (desktop) | 121+ | Full support |
+| Safari (desktop) | 17+ | Full support |
+| Chrome (Android) | 120+ | Touch supported |
+| Safari (iOS) | 17+ | Touch supported, safe-area aware |
+
+## Known Limitations
+
+- No undo/redo. Changes are immediate.
+- No export (SVG or PNG).
+- No zoom or pan on the canvas.
+- Text bounding box is approximate. Adjust width and height manually if the hit area feels off.
+- Resize at steep rotation angles can drift slightly for large deltas. The shape snaps back on the next interaction.
+- Triangle resize operates on the bounding box; vertices recalculate from it.
+
+## Project Structure
+
+```
+src/
+  components/
+    Canvas.jsx           SVG canvas, mouse/touch event handling
+    ShapeRenderer.jsx    Renders each shape type
+    SelectionHandles.jsx Resize and rotation handles
+    Toolbar.jsx          Desktop tool selector
+    PropertiesPanel.jsx  Desktop properties panel
+    MobileDrawer.jsx     Mobile slide-up properties drawer
+  hooks/
+    useIsMobile.js       Responsive breakpoint detection
+  store/
+    useShapes.js         Shape state (no external library)
+  utils/
+    geometry.js          Rotation, unrotation, point math
+docs/
+  plan.md
+  architecture.md
+  agents.md
+  validation.md
+```
 
 ## AI Usage
 
-Claude Sonnet generated the initial scaffold and SVG math. All logic reviewed and tested manually — see `docs/agents.md`.
-
-## Known Issues
-
-- **Text bounding box is approximate** — SVG text has no synchronous computed bbox; width/height must be adjusted manually.
-- **Resize drift at steep rotation** — unrotating around the original center introduces minor drift for very large resizes on heavily-rotated shapes.
-- **No undo/redo** — changes are immediate and irreversible without a page reload.
-- **No zoom or pan** — canvas is fixed at viewport size.
-- **No export** — no SVG or PNG download in the current version.
-- **Triangle resize is bbox-based** — handles resize the bounding box; triangle vertices recompute from it.
-- **Narrow phone layout** — properties panel may clip on screens under ~400px wide.
+Initial scaffold and SVG math generated by Claude. All code reviewed and tested manually. See `docs/agents.md` for what was generated, what was changed, and what was verified.
