@@ -3,8 +3,7 @@ import ShapeRenderer from './ShapeRenderer'
 import SelectionHandles from './SelectionHandles'
 import { unrotatePoint } from '../utils/geometry'
 
-// Phase 6: adds rotate drag mode.
-// dragRef payload for rotate: { type:'rotate', id, cx, cy, startAngle, origRotation }
+// Phase 9 adds the grid <pattern> background (plan.md Phase 9).
 export default function Canvas({
   shapes, selectedId, selectedShape,
   onSelect, onDeselect, onUpdate,
@@ -30,7 +29,6 @@ export default function Canvas({
       })
 
     } else if (d.type === 'rotate') {
-      // angle = atan2(pt − center), rotation = origRotation + (angle − startAngle)
       const angle = Math.atan2(pt.y - d.cy, pt.x - d.cx) * 180 / Math.PI
       onUpdate(d.id, {
         rotation: ((d.origRotation + angle - d.startAngle) % 360 + 360) % 360,
@@ -134,7 +132,14 @@ export default function Canvas({
       }}
       onMouseDown={handleCanvasMouseDown}
     >
+      {/* Grid background — plan.md Phase 9 */}
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e2d4a" strokeWidth="0.5" />
+        </pattern>
+      </defs>
       <rect width="100%" height="100%" fill="#16213e" />
+      <rect width="100%" height="100%" fill="url(#grid)" />
 
       {shapes.map(shape => (
         <ShapeRenderer
