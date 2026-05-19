@@ -1,113 +1,17 @@
-import React, { useState, useCallback, useEffect } from 'react'
-import Canvas from './components/Canvas'
-import Toolbar from './components/Toolbar'
-import PropertiesPanel from './components/PropertiesPanel'
-import { useShapes } from './store/useShapes'
+import React from 'react'
 
-const TYPE_LABEL = {
-  rect:     'Rectangle',
-  circle:   'Ellipse',
-  triangle: 'Triangle',
-  text:     'Text',
-}
-
-// App owns `tool` state (architecture.md).
-// Registers keyboard shortcuts and bridges useShapes to child components.
 export default function App() {
-  const [tool, setTool] = useState('select')
-  const {
-    shapes, selectedId, selectedShape,
-    addShape, updateShape, deleteShape,
-    bringToFront, sendToBack,
-    selectShape, clearSelection,
-  } = useShapes()
-
-  // Keyboard shortcuts — plan.md Phase 8
-  useEffect(() => {
-    const onKey = (e) => {
-      // Suppress shortcuts while typing in any input (validation.md T10)
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
-      switch (e.key) {
-        case 'v': case 'V': setTool('select');   break
-        case 'r': case 'R': setTool('rect');     break
-        case 'e': case 'E': setTool('circle');   break
-        case 't': case 'T': setTool('triangle'); break
-        case 'x': case 'X': setTool('text');     break
-        case 'Delete': case 'Backspace':
-          if (selectedId) deleteShape(selectedId)
-          break
-        case 'Escape':
-          clearSelection()
-          setTool('select')
-          break
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [selectedId, deleteShape, clearSelection])
-
-  // Adding a shape switches tool back to Select so next click doesn't add another shape
-  // (plan.md Phase 8, validation.md T1)
-  const handleAddShape = useCallback((type, x, y) => {
-    addShape(type, x, y)
-    setTool('select')
-  }, [addShape])
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-
-      {/* Header — status bar + shortcut hint bar (plan.md Phase 9) */}
-      <header style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: '48px',
-        padding: '0 16px',
-        gap: '12px',
-        background: '#0f3460',
-        borderBottom: '1px solid #1a4a7a',
-        flexShrink: 0,
-      }}>
-        <span style={{ fontSize: '16px', fontWeight: 700, color: '#e0e0e0' }}>
-          ✦ Micro Design Tool
-        </span>
-
-        {/* Object count + selected type */}
-        <span style={{ fontSize: '12px', color: '#6b8ab8' }}>
-          {shapes.length} object{shapes.length !== 1 ? 's' : ''}
-          {selectedShape ? ` · ${TYPE_LABEL[selectedShape.type]} selected` : ''}
-        </span>
-
-        {/* Shortcut hints */}
-        <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#4a6a8a' }}>
-          V=select · R=rect · E=ellipse · T=triangle · X=text · Del=delete · Esc=deselect
-        </span>
-      </header>
-
-      {/* Three-column layout: Toolbar | Canvas | PropertiesPanel */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Toolbar tool={tool} onToolChange={setTool} />
-
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-          <Canvas
-            shapes={shapes}
-            selectedId={selectedId}
-            selectedShape={selectedShape}
-            onSelect={selectShape}
-            onDeselect={clearSelection}
-            onUpdate={updateShape}
-            tool={tool}
-            onAddShape={handleAddShape}
-          />
-        </div>
-
-        <PropertiesPanel
-          shape={selectedShape}
-          onUpdate={updateShape}
-          onDelete={deleteShape}
-          onBringToFront={() => selectedId && bringToFront(selectedId)}
-          onSendToBack={()  => selectedId && sendToBack(selectedId)}
-        />
-      </div>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      background: '#1a1a2e',
+      color: '#e0e0e0',
+      fontSize: '24px',
+    }}>
+      Micro Design Tool — scaffold ready
     </div>
   )
 }
