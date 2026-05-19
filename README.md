@@ -26,19 +26,18 @@ All objects also support numeric property editing (X, Y, W, H, rotation°) in th
 
 ## Controls
 
-| Action | How |
-|--------|-----|
-| Select tool | Click toolbar or press **V** |
-| Add Rectangle | Press **R**, click canvas |
-| Add Ellipse | Press **E**, click canvas |
-| Add Triangle | Press **T**, click canvas |
-| Add Text | Press **X**, click canvas |
-| Move | Drag selected shape |
-| Resize | Drag any of the 8 square handles |
-| Rotate | Drag the circular handle above the shape |
-| Edit text | Type in the Content field in the properties panel |
-| Delete | **Delete** / **Backspace**, or panel button |
-| Deselect | Click empty canvas or press **Esc** |
+| Action | Mouse | Touch |
+|--------|-------|-------|
+| Select tool | Click toolbar or press **V** | Tap toolbar |
+| Add shape | Press shortcut, click canvas | Tap tool, tap canvas |
+| Move | Drag shape | One-finger drag |
+| Resize | Drag any of the 8 square handles | One-finger drag handle |
+| Rotate | Drag circular handle above shape | One-finger drag rotation handle |
+| Edit text | Type in Content field in panel | Tap Content field, type |
+| Delete | **Delete** / **Backspace**, or panel button | Tap panel button |
+| Deselect | Click empty canvas or **Esc** | Tap empty canvas |
+
+**Keyboard shortcuts (desktop):** V=select · R=rect · E=ellipse · T=triangle · X=text · Del=delete · Esc=deselect
 
 ## Build for Production
 
@@ -47,13 +46,21 @@ npm run build    # outputs to dist/
 npm run preview  # serve production build locally
 ```
 
-## Browser Support
+## Browser & Device Support
 
-Tested on Chrome 120+, Firefox 121+, Safari 17+. Desktop only — no touch/mobile support.
+| Platform | Tested on | Status |
+|----------|-----------|--------|
+| Desktop Chrome | 120+ | ✅ Full support |
+| Desktop Firefox | 121+ | ✅ Full support |
+| Desktop Safari | 17+ | ✅ Full support |
+| Mobile Chrome (Android) | 120+ | ✅ Touch supported |
+| Mobile Safari (iOS) | 17+ | ✅ Touch supported |
+
+> The layout (toolbar + canvas + properties panel) is optimised for landscape or tablet-sized screens. On a narrow phone the properties panel may overflow — scroll horizontally or rotate to landscape.
 
 ## AI Usage
 
-Claude Sonnet generated the initial scaffold and SVG rotation math. All logic was reviewed and tested manually — see `docs/agents.md` for what was generated, what was changed, and what judgment calls were kept out of AI delegation.
+Claude Sonnet generated the initial scaffold and SVG math. All logic reviewed and tested manually — see `docs/agents.md`.
 
 ## Known Issues
 
@@ -63,3 +70,4 @@ Claude Sonnet generated the initial scaffold and SVG rotation math. All logic wa
 - **No zoom or pan** — canvas is fixed at viewport size.
 - **No export** — no SVG or PNG download in the current version.
 - **Triangle resize is bbox-based** — handles resize the bounding box; triangle vertices recompute from it.
+- **Narrow phone layout** — properties panel may clip on screens under ~400px wide.

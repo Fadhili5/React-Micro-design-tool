@@ -1,8 +1,9 @@
 import React from 'react'
 
-const H   = 8    // resize handle square size
-const ROT = 30   // rotation handle offset above top edge
-const BLUE = '#0099ff'
+const H        = 8    // visible handle square size
+const TOUCH_R  = 20   // invisible touch target radius (finger-friendly)
+const ROT      = 30   // rotation handle offset above top edge
+const BLUE     = '#0099ff'
 
 const CURSORS = {
   nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize',
@@ -21,8 +22,10 @@ const HANDLES = [
   { id: 'w',  dx: 0,   dy: 0.5 },
 ]
 
-// Phase 6: adds rotation stem + circular handle 30px above the top edge.
-// Architecture: group pointerEvents:none; interactive children override to 'all'.
+// Each interactive element has:
+//   - a large transparent hit target (finger-friendly, TOUCH_R radius / TOUCH_R*2 square)
+//   - a small visible indicator (pointerEvents:none so it doesn't interfere)
+// Both onMouseDown and onTouchStart are wired to the same handler.
 export default function SelectionHandles({ shape, onResizeStart, onRotateStart }) {
   const { x, y, width, height, rotation } = shape
   const cx = x + width  / 2
@@ -47,26 +50,43 @@ export default function SelectionHandles({ shape, onResizeStart, onRotateStart }
         style={{ pointerEvents: 'none' }}
       />
 
-      {/* rotation handle — circular, 30px above top edge (plan.md Phase 6) */}
+      {/* rotation handle — large transparent touch target + small visible circle */}
+      <circle
+        cx={cx} cy={y - ROT} r={TOUCH_R}
+        fill="transparent" stroke="none"
+        style={{ cursor: 'crosshair', pointerEvents: 'all' }}
+        onMouseDown={(e) => { e.stopPropagation(); onRotateStart(e) }}
+        onTouchStart={(e) => { e.stopPropagation(); onRotateStart(e) }}
+      />
       <circle
         cx={cx} cy={y - ROT} r={6}
         fill="white" stroke={BLUE} strokeWidth={1.5}
-        style={{ cursor: 'crosshair', pointerEvents: 'all' }}
-        onMouseDown={(e) => { e.stopPropagation(); onRotateStart(e) }}
+        style={{ pointerEvents: 'none' }}
       />
 
-      {/* 8 resize handles */}
-      {HANDLES.map(({ id, dx, dy }) => (
-        <rect
-          key={id}
-          x={x + dx * width  - H / 2}
-          y={y + dy * height - H / 2}
-          width={H} height={H}
-          fill="white" stroke={BLUE} strokeWidth={1.5}
-          style={{ cursor: CURSORS[id], pointerEvents: 'all' }}
-          onMouseDown={(e) => { e.stopPropagation(); onResizeStart(e, id) }}
-        />
-      ))}
+      {/* 8 resize handles — each has a large touch target + small visible square */}
+      {HANDLES.map(({ id, dx, dy }) => {
+        const hx = x + dx * width
+        const hy = y + dy * height
+        return (
+          <g key={id}>
+            <rect
+              x={hx - TOUCH_R} y={hy - TOUCH_R}
+              width={TOUCH_R * 2} height={TOUCH_R * 2}
+              fill="transparent" stroke="none"
+              style={{ cursor: CURSORS[id], pointerEvents: 'all' }}
+              onMouseDown={(e) => { e.stopPropagation(); onResizeStart(e, id) }}
+              onTouchStart={(e) => { e.stopPropagation(); onResizeStart(e, id) }}
+            />
+            <rect
+              x={hx - H / 2} y={hy - H / 2}
+              width={H} height={H}
+              fill="white" stroke={BLUE} strokeWidth={1.5}
+              style={{ pointerEvents: 'none' }}
+            />
+          </g>
+        )
+      })}
     </g>
   )
 }

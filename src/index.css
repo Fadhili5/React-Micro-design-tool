@@ -1,27 +1,58 @@
+:root {
+  --toolbar-h: 64px;
+  --header-h: 50px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  /* Total toolbar height including iOS home-indicator safe area */
+  --toolbar-total: calc(var(--toolbar-h) + var(--safe-bottom));
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #1a1a2e;
   color: #e0e0e0;
-  height: 100vh;
-  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #root {
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Allow text selection and typing inside inputs */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  /* 16px minimum prevents iOS Safari from zooming on focus */
+  font-size: 16px !important;
 }
 
 input[type='range'] {
   accent-color: #0099ff;
 }
 
-button:hover {
-  filter: brightness(1.15);
+button:active {
+  filter: brightness(1.2);
+}
+
+/* Smooth momentum scrolling on iOS */
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
