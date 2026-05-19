@@ -7,7 +7,8 @@ function trianglePoints(x, y, w, h) {
 
 // Pure render component (architecture.md).
 // Wraps every shape in <g transform="rotate(θ,cx,cy)"> for rotation.
-// Text always renders an invisible hit-rect over the bounding box (agents.md fix).
+// Text always renders an invisible hit-rect over the bounding box (agents.md fix:
+// the rect must be present even when not selected, not only when selected).
 export default function ShapeRenderer({ shape, onMouseDown }) {
   const {
     id, type, x, y, width, height,
@@ -15,7 +16,7 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
     text, fontSize,
   } = shape
 
-  const cx = x + width / 2
+  const cx = x + width  / 2
   const cy = y + height / 2
 
   const shared = {
@@ -43,10 +44,7 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
 
       {type === 'text' && (
         <>
-          {/*
-            Invisible rect covers the full bbox — always present, not just when
-            selected. This makes the whole area draggable (agents.md fix).
-          */}
+          {/* Invisible rect — always present (agents.md fix) so the whole bbox is draggable */}
           <rect
             x={x} y={y} width={width} height={height}
             fill="transparent" stroke="none"
