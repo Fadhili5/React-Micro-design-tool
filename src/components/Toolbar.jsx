@@ -1,7 +1,7 @@
 import React from 'react'
 
-// 5 tool buttons: Select, Rect, Ellipse, Triangle, Text — plan.md Phase 8.
-// Active state driven by tool === id. No business logic; delegates to onToolChange.
+// 5-button vertical toolbar (plan.md Phase 8).
+// Active state driven purely by tool === id. No business logic; delegates to onToolChange.
 const TOOLS = [
   { id: 'select',   icon: '↖', label: 'Select',   hint: 'V' },
   { id: 'rect',     icon: '▭', label: 'Rect',     hint: 'R' },
@@ -25,8 +25,7 @@ export default function Toolbar({ tool, onToolChange }) {
     }}>
       <div style={{
         fontSize: '10px', color: '#4a6a8a',
-        fontWeight: 700, letterSpacing: '0.8px',
-        marginBottom: '6px',
+        fontWeight: 700, letterSpacing: '0.8px', marginBottom: '6px',
       }}>
         TOOLS
       </div>
@@ -37,13 +36,9 @@ export default function Toolbar({ tool, onToolChange }) {
           title={`${t.label} (${t.hint})`}
           onClick={() => onToolChange(t.id)}
           style={{
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px',
-            cursor: 'pointer',
+            width: '40px', height: '40px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '18px', cursor: 'pointer',
             border: `2px solid ${tool === t.id ? '#0099ff' : 'transparent'}`,
             borderRadius: '8px',
             background: tool === t.id ? 'rgba(0,153,255,0.12)' : 'transparent',
