@@ -1,16 +1,15 @@
 import React from 'react'
 
-const H = 8           // handle square size
-const ROT = 30        // rotation handle offset above top edge
+const H    = 8           // handle square size in px
 const BLUE = '#0099ff'
 
 const CURSORS = {
   nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize',
   e:  'e-resize',  se: 'se-resize',
-  s:  's-resize',  sw: 'sw-resize', w: 'w-resize',
+  s:  's-resize',  sw: 'sw-resize', w:  'w-resize',
 }
 
-// Fractional positions (dx,dy) within the bounding box for each handle.
+// Fractional (dx, dy) positions within the bounding box for each handle.
 const HANDLES = [
   { id: 'nw', dx: 0,   dy: 0   },
   { id: 'n',  dx: 0.5, dy: 0   },
@@ -22,11 +21,11 @@ const HANDLES = [
   { id: 'w',  dx: 0,   dy: 0.5 },
 ]
 
-// Renders the dashed selection outline, 8 resize handles, and rotation stem+circle.
-// Architecture: group has pointerEvents:none; interactive children override to 'all'.
-export default function SelectionHandles({ shape, onResizeStart, onRotateStart }) {
+// Phase 5: dashed outline + 8 resize handles.
+// Architecture: group has pointerEvents:none; interactive handles override to 'all'.
+export default function SelectionHandles({ shape, onResizeStart }) {
   const { x, y, width, height, rotation } = shape
-  const cx = x + width / 2
+  const cx = x + width  / 2
   const cy = y + height / 2
 
   return (
@@ -39,21 +38,6 @@ export default function SelectionHandles({ shape, onResizeStart, onRotateStart }
         x={x} y={y} width={width} height={height}
         fill="none" stroke={BLUE} strokeWidth={1.5} strokeDasharray="5 3"
         style={{ pointerEvents: 'none' }}
-      />
-
-      {/* rotation stem */}
-      <line
-        x1={cx} y1={y} x2={cx} y2={y - ROT}
-        stroke={BLUE} strokeWidth={1.5}
-        style={{ pointerEvents: 'none' }}
-      />
-
-      {/* rotation handle — circular, 30 px above top edge */}
-      <circle
-        cx={cx} cy={y - ROT} r={6}
-        fill="white" stroke={BLUE} strokeWidth={1.5}
-        style={{ cursor: 'crosshair', pointerEvents: 'all' }}
-        onMouseDown={(e) => { e.stopPropagation(); onRotateStart(e) }}
       />
 
       {/* 8 resize handles */}
