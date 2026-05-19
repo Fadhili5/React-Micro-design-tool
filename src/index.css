@@ -10,6 +10,10 @@ body {
   color: #e0e0e0;
   height: 100vh;
   overflow: hidden;
+  /* Prevent scroll/zoom interference during touch drags */
+  touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
 }
 
 #root {
@@ -20,6 +24,11 @@ body {
 
 input[type='range'] {
   accent-color: #0099ff;
+}
+
+/* Re-enable text selection inside inputs */
+input, textarea {
+  user-select: text;
 }
 
 button:hover {

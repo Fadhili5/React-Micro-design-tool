@@ -1,14 +1,10 @@
 import React from 'react'
 
 function trianglePoints(x, y, w, h) {
-  // top-center, bottom-right, bottom-left
   return `${x + w / 2},${y} ${x + w},${y + h} ${x},${y + h}`
 }
 
-// Pure render component (architecture.md).
-// Wraps every shape in <g transform="rotate(θ,cx,cy)"> for rotation.
-// Text always renders an invisible hit-rect over the bounding box (agents.md fix:
-// the rect must be present even when not selected, not only when selected).
+// Pure render component. onMouseDown is reused for both mouse and touch events.
 export default function ShapeRenderer({ shape, onMouseDown }) {
   const {
     id, type, x, y, width, height,
@@ -26,6 +22,7 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
     opacity,
     style: { cursor: 'move' },
     onMouseDown: (e) => onMouseDown(e, id),
+    onTouchStart: (e) => onMouseDown(e, id),
   }
 
   return (
@@ -44,12 +41,13 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
 
       {type === 'text' && (
         <>
-          {/* Invisible rect — always present (agents.md fix) so the whole bbox is draggable */}
+          {/* Invisible hit-rect always present (agents.md fix), handles both mouse + touch */}
           <rect
             x={x} y={y} width={width} height={height}
             fill="transparent" stroke="none"
             style={{ cursor: 'move' }}
             onMouseDown={(e) => onMouseDown(e, id)}
+            onTouchStart={(e) => onMouseDown(e, id)}
           />
           <text
             x={cx}
