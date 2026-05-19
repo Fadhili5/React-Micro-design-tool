@@ -1,13 +1,16 @@
 import { useState, useCallback } from 'react'
 
-let idCounter = 10
-function createId() {
-  return `shape-${idCounter++}`
+let nextId = 10
+function uid() {
+  return `shape-${nextId++}`
 }
 
+// Shape schema per plan.md:
+// { id, type, x, y, width, height, fill, stroke, strokeWidth, opacity, rotation }
+// text extras: text, fontSize
 function makeShape(type, x, y) {
   const base = {
-    id: createId(),
+    id: uid(),
     type,
     fill: '#4ECDC4',
     stroke: '#2C7873',
@@ -27,7 +30,7 @@ function makeShape(type, x, y) {
         ...base,
         x: x - 100, y: y - 20,
         width: 200, height: 40,
-        fill: '#ffffff',
+        fill: '#e0e0e0',
         stroke: 'none',
         strokeWidth: 0,
         text: 'Edit me',
@@ -38,32 +41,33 @@ function makeShape(type, x, y) {
   }
 }
 
+// 5 sample shapes so the canvas is not blank on first load (plan.md Phase 2)
 const INITIAL_SHAPES = [
   {
     id: 'shape-1', type: 'rect',
-    x: 80, y: 140, width: 180, height: 110,
+    x: 80, y: 130, width: 200, height: 120,
     fill: '#4ECDC4', stroke: '#2C7873', strokeWidth: 2, opacity: 1, rotation: 0,
   },
   {
     id: 'shape-2', type: 'circle',
-    x: 340, y: 110, width: 140, height: 140,
+    x: 350, y: 100, width: 140, height: 140,
     fill: '#FF6B6B', stroke: '#CC3333', strokeWidth: 2, opacity: 1, rotation: 0,
   },
   {
     id: 'shape-3', type: 'triangle',
-    x: 570, y: 130, width: 130, height: 130,
-    fill: '#FFE66D', stroke: '#CCA800', strokeWidth: 2, opacity: 1, rotation: 0,
+    x: 570, y: 120, width: 130, height: 130,
+    fill: '#FFE66D', stroke: '#CC9900', strokeWidth: 2, opacity: 1, rotation: 0,
   },
   {
     id: 'shape-4', type: 'rect',
-    x: 200, y: 320, width: 160, height: 100,
-    fill: '#A855F7', stroke: '#7C3AED', strokeWidth: 2, opacity: 0.85, rotation: -12,
+    x: 200, y: 310, width: 160, height: 100,
+    fill: '#A855F7', stroke: '#7C3AED', strokeWidth: 2, opacity: 0.85, rotation: -15,
   },
   {
     id: 'shape-5', type: 'text',
-    x: 160, y: 460, width: 380, height: 44,
+    x: 130, y: 460, width: 400, height: 48,
     fill: '#e0e0e0', stroke: 'none', strokeWidth: 0, opacity: 1, rotation: 0,
-    text: 'Click a shape to select and edit it', fontSize: 20,
+    text: 'Click a shape to select it', fontSize: 22,
   },
 ]
 
@@ -104,6 +108,7 @@ export function useShapes() {
   const selectShape = useCallback((id) => setSelectedId(id), [])
   const clearSelection = useCallback(() => setSelectedId(null), [])
 
+  // Derived — architecture.md: shapes.find(s => s.id === selectedId)
   const selectedShape = shapes.find(s => s.id === selectedId) ?? null
 
   return {

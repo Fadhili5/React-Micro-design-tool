@@ -22,10 +22,6 @@ input[type='range'] {
   accent-color: #0099ff;
 }
 
-input[type='color'] {
-  cursor: pointer;
-}
-
 button:hover {
   filter: brightness(1.15);
 }

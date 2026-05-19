@@ -1,16 +1,24 @@
 import React from 'react'
 
 function trianglePoints(x, y, w, h) {
+  // top-center, bottom-right, bottom-left
   return `${x + w / 2},${y} ${x + w},${y + h} ${x},${y + h}`
 }
 
-export default function ShapeRenderer({ shape, isSelected, onMouseDown }) {
-  const { id, type, x, y, width, height, fill, stroke, strokeWidth, opacity, rotation, text, fontSize } = shape
+// Pure render component (architecture.md).
+// Wraps every shape in <g transform="rotate(θ,cx,cy)"> for rotation.
+// Text always renders an invisible hit-rect over the bounding box (agents.md fix).
+export default function ShapeRenderer({ shape, onMouseDown }) {
+  const {
+    id, type, x, y, width, height,
+    fill, stroke, strokeWidth, opacity, rotation,
+    text, fontSize,
+  } = shape
+
   const cx = x + width / 2
   const cy = y + height / 2
-  const transform = `rotate(${rotation || 0}, ${cx}, ${cy})`
 
-  const sharedProps = {
+  const shared = {
     fill,
     stroke: stroke === 'none' ? 'none' : stroke,
     strokeWidth,
@@ -20,19 +28,25 @@ export default function ShapeRenderer({ shape, isSelected, onMouseDown }) {
   }
 
   return (
-    <g transform={transform}>
+    <g transform={`rotate(${rotation || 0}, ${cx}, ${cy})`}>
       {type === 'rect' && (
-        <rect x={x} y={y} width={width} height={height} rx={2} {...sharedProps} />
+        <rect x={x} y={y} width={width} height={height} rx={2} {...shared} />
       )}
+
       {type === 'circle' && (
-        <ellipse cx={cx} cy={cy} rx={width / 2} ry={height / 2} {...sharedProps} />
+        <ellipse cx={cx} cy={cy} rx={width / 2} ry={height / 2} {...shared} />
       )}
+
       {type === 'triangle' && (
-        <polygon points={trianglePoints(x, y, width, height)} {...sharedProps} />
+        <polygon points={trianglePoints(x, y, width, height)} {...shared} />
       )}
+
       {type === 'text' && (
         <>
-          {/* invisible hit rect so the whole bounding box is draggable */}
+          {/*
+            Invisible rect covers the full bbox — always present, not just when
+            selected. This makes the whole area draggable (agents.md fix).
+          */}
           <rect
             x={x} y={y} width={width} height={height}
             fill="transparent" stroke="none"
@@ -46,8 +60,7 @@ export default function ShapeRenderer({ shape, isSelected, onMouseDown }) {
             fill={fill}
             fontSize={fontSize || 16}
             fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-            style={{ userSelect: 'none', cursor: 'move' }}
-            onMouseDown={(e) => onMouseDown(e, id)}
+            style={{ userSelect: 'none', pointerEvents: 'none' }}
           >
             {text}
           </text>

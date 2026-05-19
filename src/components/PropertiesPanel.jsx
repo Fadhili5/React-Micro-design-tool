@@ -1,22 +1,29 @@
 import React from 'react'
 
+const TYPE_LABEL = {
+  rect:     'Rectangle',
+  circle:   'Ellipse',
+  triangle: 'Triangle',
+  text:     'Text',
+}
+
+// --- Sub-components ---
+
 function Label({ children }) {
   return (
-    <div style={{ fontSize: '11px', color: '#6b8ab8', marginBottom: '4px', fontWeight: 600 }}>
+    <div style={{ fontSize: '11px', color: '#6b8ab8', fontWeight: 600, marginBottom: '4px' }}>
       {children}
     </div>
   )
 }
 
-function Section({ title, children }) {
+function SectionTitle({ children }) {
   return (
-    <div style={{ marginBottom: '18px' }}>
-      <div style={{
-        fontSize: '10px', color: '#4a6a8a', marginBottom: '8px',
-        fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase',
-      }}>
-        {title}
-      </div>
+    <div style={{
+      fontSize: '10px', color: '#4a6a8a',
+      fontWeight: 700, letterSpacing: '0.8px',
+      textTransform: 'uppercase', marginBottom: '8px',
+    }}>
       {children}
     </div>
   )
@@ -31,65 +38,62 @@ function NumInput({ label, value, onChange, min, max, step = 1 }) {
         value={Math.round(value * 100) / 100}
         min={min} max={max} step={step}
         onChange={e => onChange(Number(e.target.value))}
-        style={{
-          width: '100%', padding: '5px 8px',
-          background: '#16213e', border: '1px solid #1a4a7a',
-          borderRadius: '6px', color: '#e0e0e0', fontSize: '13px',
-        }}
+        style={INPUT}
       />
     </div>
   )
 }
 
-function ColorRow({ label, value, onChange }) {
-  const safeHex = value === 'none' ? '#000000' : value
+// Color picker + hex text field pair (plan.md Phase 7).
+// Color picker only receives a valid 6-digit hex; text field shows the raw value.
+function ColorField({ label, value, onChange }) {
+  const safeHex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#000000'
   return (
     <div style={{ marginBottom: '8px' }}>
       <Label>{label}</Label>
       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
         <input
-          type="color" value={safeHex}
+          type="color"
+          value={safeHex}
           onChange={e => onChange(e.target.value)}
           style={{ width: '32px', height: '28px', border: 'none', borderRadius: '4px', padding: '2px', background: 'transparent', cursor: 'pointer' }}
         />
         <input
-          type="text" value={value}
+          type="text"
+          value={value}
           onChange={e => onChange(e.target.value)}
-          style={{ flex: 1, padding: '5px 8px', background: '#16213e', border: '1px solid #1a4a7a', borderRadius: '6px', color: '#e0e0e0', fontSize: '12px' }}
+          style={{ ...INPUT, flex: 1 }}
         />
       </div>
     </div>
   )
 }
 
-export default function PropertiesPanel({ shape, onUpdate, onDelete, onBringToFront, onSendToBack }) {
+// --- Main panel ---
+
+export default function PropertiesPanel({
+  shape, onUpdate, onDelete, onBringToFront, onSendToBack,
+}) {
   if (!shape) {
     return (
-      <div style={{
-        width: '220px', padding: '20px',
-        background: '#0f3460', borderLeft: '1px solid #1a4a7a',
-        color: '#4a6a8a', fontSize: '13px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center', lineHeight: 1.6,
-      }}>
+      <div style={{ ...PANEL, justifyContent: 'center', color: '#4a6a8a', fontSize: '13px', textAlign: 'center', lineHeight: 1.6 }}>
         Select an object to edit its properties
       </div>
     )
   }
 
+  // Shorthand: each control calls onUpdate(shape.id, { key: value }) (architecture.md)
   const upd = (key) => (val) => onUpdate(shape.id, { [key]: val })
 
   return (
-    <div style={{
-      width: '220px', padding: '16px',
-      background: '#0f3460', borderLeft: '1px solid #1a4a7a',
-      overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0',
-    }}>
-      <div style={{ fontSize: '12px', color: '#9ab0cc', marginBottom: '16px', fontWeight: 600 }}>
-        {shape.type.charAt(0).toUpperCase() + shape.type.slice(1)}
+    <div style={{ ...PANEL, justifyContent: 'flex-start' }}>
+      <div style={{ fontSize: '12px', fontWeight: 600, color: '#9ab0cc', marginBottom: '16px' }}>
+        {TYPE_LABEL[shape.type] ?? shape.type}
       </div>
 
-      <Section title="Transform">
+      {/* Transform — X, Y, W, H, Rotation */}
+      <div style={{ marginBottom: '18px' }}>
+        <SectionTitle>Transform</SectionTitle>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
           <NumInput label="X" value={shape.x} onChange={upd('x')} />
           <NumInput label="Y" value={shape.y} onChange={upd('y')} />
@@ -97,14 +101,18 @@ export default function PropertiesPanel({ shape, onUpdate, onDelete, onBringToFr
           <NumInput label="H" value={shape.height} onChange={v => onUpdate(shape.id, { height: Math.max(20, v) })} min={20} />
         </div>
         <NumInput label="Rotation (°)" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
-      </Section>
+      </div>
 
-      <Section title="Appearance">
-        <ColorRow label="Fill" value={shape.fill} onChange={upd('fill')} />
+      {/* Appearance — Fill, Stroke checkbox + color, Stroke width, Opacity */}
+      <div style={{ marginBottom: '18px' }}>
+        <SectionTitle>Appearance</SectionTitle>
+
+        <ColorField label="Fill" value={shape.fill} onChange={upd('fill')} />
 
         {shape.type !== 'text' && (
           <>
-            <div style={{ marginBottom: '6px' }}>
+            {/* Checkbox to enable/disable stroke — avoids exposing 'none' to color picker (agents.md fix) */}
+            <div style={{ marginBottom: '8px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
@@ -116,7 +124,7 @@ export default function PropertiesPanel({ shape, onUpdate, onDelete, onBringToFr
             </div>
             {shape.stroke !== 'none' && (
               <>
-                <ColorRow label="Stroke Color" value={shape.stroke} onChange={upd('stroke')} />
+                <ColorField label="Stroke Color" value={shape.stroke} onChange={upd('stroke')} />
                 <NumInput label="Stroke Width" value={shape.strokeWidth} onChange={upd('strokeWidth')} min={0} max={20} step={0.5} />
               </>
             )}
@@ -132,33 +140,39 @@ export default function PropertiesPanel({ shape, onUpdate, onDelete, onBringToFr
             style={{ width: '100%' }}
           />
         </div>
-      </Section>
+      </div>
 
+      {/* Text section — only for text shapes (plan.md Phase 7) */}
       {shape.type === 'text' && (
-        <Section title="Text">
+        <div style={{ marginBottom: '18px' }}>
+          <SectionTitle>Text</SectionTitle>
           <div style={{ marginBottom: '8px' }}>
             <Label>Content</Label>
             <input
-              type="text" value={shape.text}
+              type="text"
+              value={shape.text ?? ''}
               onChange={e => onUpdate(shape.id, { text: e.target.value })}
-              style={{ width: '100%', padding: '5px 8px', background: '#16213e', border: '1px solid #1a4a7a', borderRadius: '6px', color: '#e0e0e0', fontSize: '13px' }}
+              style={INPUT}
             />
           </div>
-          <NumInput label="Font Size" value={shape.fontSize} onChange={upd('fontSize')} min={8} max={120} />
-        </Section>
+          <NumInput label="Font Size" value={shape.fontSize ?? 16} onChange={upd('fontSize')} min={8} max={120} />
+        </div>
       )}
 
-      <Section title="Layer">
+      {/* Layer order */}
+      <div style={{ marginBottom: '18px' }}>
+        <SectionTitle>Layer</SectionTitle>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <button onClick={onBringToFront} style={layerBtn}>▲ Front</button>
-          <button onClick={onSendToBack}  style={layerBtn}>▼ Back</button>
+          <button onClick={onBringToFront} style={LAYER_BTN}>▲ Front</button>
+          <button onClick={onSendToBack}   style={LAYER_BTN}>▼ Back</button>
         </div>
-      </Section>
+      </div>
 
       <button
         onClick={() => onDelete(shape.id)}
         style={{
-          marginTop: 'auto', width: '100%', padding: '8px',
+          marginTop: 'auto',
+          width: '100%', padding: '8px',
           background: '#991111', border: 'none', borderRadius: '8px',
           color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
         }}
@@ -169,7 +183,28 @@ export default function PropertiesPanel({ shape, onUpdate, onDelete, onBringToFr
   )
 }
 
-const layerBtn = {
+const PANEL = {
+  width: '220px',
+  padding: '16px',
+  background: '#0f3460',
+  borderLeft: '1px solid #1a4a7a',
+  overflowY: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  flexShrink: 0,
+}
+
+const INPUT = {
+  width: '100%',
+  padding: '5px 8px',
+  background: '#16213e',
+  border: '1px solid #1a4a7a',
+  borderRadius: '6px',
+  color: '#e0e0e0',
+  fontSize: '13px',
+}
+
+const LAYER_BTN = {
   flex: 1, padding: '6px',
   background: '#16213e', border: '1px solid #1a4a7a',
   borderRadius: '6px', color: '#9ab0cc',
