@@ -1,6 +1,7 @@
 import React from 'react'
 
-const H    = 8           // handle square size in px
+const H   = 8    // resize handle square size
+const ROT = 30   // rotation handle offset above top edge
 const BLUE = '#0099ff'
 
 const CURSORS = {
@@ -9,7 +10,6 @@ const CURSORS = {
   s:  's-resize',  sw: 'sw-resize', w:  'w-resize',
 }
 
-// Fractional (dx, dy) positions within the bounding box for each handle.
 const HANDLES = [
   { id: 'nw', dx: 0,   dy: 0   },
   { id: 'n',  dx: 0.5, dy: 0   },
@@ -21,9 +21,9 @@ const HANDLES = [
   { id: 'w',  dx: 0,   dy: 0.5 },
 ]
 
-// Phase 5: dashed outline + 8 resize handles.
-// Architecture: group has pointerEvents:none; interactive handles override to 'all'.
-export default function SelectionHandles({ shape, onResizeStart }) {
+// Phase 6: adds rotation stem + circular handle 30px above the top edge.
+// Architecture: group pointerEvents:none; interactive children override to 'all'.
+export default function SelectionHandles({ shape, onResizeStart, onRotateStart }) {
   const { x, y, width, height, rotation } = shape
   const cx = x + width  / 2
   const cy = y + height / 2
@@ -38,6 +38,21 @@ export default function SelectionHandles({ shape, onResizeStart }) {
         x={x} y={y} width={width} height={height}
         fill="none" stroke={BLUE} strokeWidth={1.5} strokeDasharray="5 3"
         style={{ pointerEvents: 'none' }}
+      />
+
+      {/* rotation stem */}
+      <line
+        x1={cx} y1={y} x2={cx} y2={y - ROT}
+        stroke={BLUE} strokeWidth={1.5}
+        style={{ pointerEvents: 'none' }}
+      />
+
+      {/* rotation handle — circular, 30px above top edge (plan.md Phase 6) */}
+      <circle
+        cx={cx} cy={y - ROT} r={6}
+        fill="white" stroke={BLUE} strokeWidth={1.5}
+        style={{ cursor: 'crosshair', pointerEvents: 'all' }}
+        onMouseDown={(e) => { e.stopPropagation(); onRotateStart(e) }}
       />
 
       {/* 8 resize handles */}

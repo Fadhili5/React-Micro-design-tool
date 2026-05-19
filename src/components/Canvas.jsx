@@ -3,7 +3,8 @@ import ShapeRenderer from './ShapeRenderer'
 import SelectionHandles from './SelectionHandles'
 import { unrotatePoint } from '../utils/geometry'
 
-// Phase 5: adds resize handling using rotation-aware unrotate math (architecture.md).
+// Phase 6: adds rotate drag mode.
+// dragRef payload for rotate: { type:'rotate', id, cx, cy, startAngle, origRotation }
 export default function Canvas({
   shapes, selectedId, selectedShape,
   onSelect, onDeselect, onUpdate,
@@ -28,13 +29,18 @@ export default function Canvas({
         y: d.origY + pt.y - d.startY,
       })
 
+    } else if (d.type === 'rotate') {
+      // angle = atan2(pt − center), rotation = origRotation + (angle − startAngle)
+      const angle = Math.atan2(pt.y - d.cy, pt.x - d.cx) * 180 / Math.PI
+      onUpdate(d.id, {
+        rotation: ((d.origRotation + angle - d.startAngle) % 360 + 360) % 360,
+      })
+
     } else if (d.type === 'resize') {
       const { orig, handle } = d
-      // Use ORIGINAL center captured at mousedown (agents.md fix).
       const cx = orig.x + orig.width  / 2
       const cy = orig.y + orig.height / 2
 
-      // Unrotate both points into the shape's local frame (architecture.md resize math).
       const localPt    = unrotatePoint(pt.x,    pt.y,    cx, cy, orig.rotation || 0)
       const localStart = unrotatePoint(d.startX, d.startY, cx, cy, orig.rotation || 0)
       const dx = localPt.x - localStart.x
@@ -92,7 +98,22 @@ export default function Canvas({
       type: 'resize',
       handle: handleId,
       startX: pt.x, startY: pt.y,
-      orig: { ...selectedShape },   // full snapshot; orig.id used in onUpdate
+      orig: { ...selectedShape },
+    }
+  }, [selectedShape])
+
+  const handleRotateStart = useCallback((e) => {
+    e.preventDefault()
+    if (!selectedShape) return
+    const pt = getSVGPoint(e)
+    const cx = selectedShape.x + selectedShape.width  / 2
+    const cy = selectedShape.y + selectedShape.height / 2
+    dragRef.current = {
+      type: 'rotate',
+      id: selectedShape.id,
+      cx, cy,
+      startAngle: Math.atan2(pt.y - cy, pt.x - cx) * 180 / Math.PI,
+      origRotation: selectedShape.rotation || 0,
     }
   }, [selectedShape])
 
@@ -127,6 +148,7 @@ export default function Canvas({
         <SelectionHandles
           shape={selectedShape}
           onResizeStart={handleResizeStart}
+          onRotateStart={handleRotateStart}
         />
       )}
     </svg>
