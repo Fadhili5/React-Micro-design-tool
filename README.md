@@ -1,6 +1,6 @@
 # React Micro Design Tool
 
-A browser-based graphic editor built with React 18 and SVG. Select, move, resize, rotate, and recolor basic shapes on a shared canvas. Works on desktop and mobile.
+A browser-based graphic editor built with React 18 and SVG. Select, move, resize, rotate, and recolor basic shapes on a shared canvas. Shapes can also be combined using boolean operations (subtract or unite). Works on desktop and mobile.
 
 ## Getting Started
 
@@ -27,23 +27,28 @@ An isosceles triangle defined by its bounding box. The three vertices are calcul
 ### Text
 A single-line text label. Position, size, rotation, fill, opacity, and layer order all work. Stroke is not supported on text. The width and height fields control the invisible bounding box used for hit-testing and handles — they do not auto-fit the text content, so you may need to adjust them manually.
 
+### Compound Shape
+The result of a boolean subtract or unite operation applied to two shapes. The compound shape can be moved, recolored, and deleted. Resize and rotation handles are not available because the geometry is baked into the path data at creation time. A compound shape cannot itself be used as an input for further boolean operations.
+
 ## Modifications by Object Type
 
-| Modification | Rectangle | Ellipse | Triangle | Text |
-|---|---|---|---|---|
-| Move | yes | yes | yes | yes |
-| Resize (8 handles) | yes | yes | yes | yes |
-| Rotate | yes | yes | yes | yes |
-| Fill color | yes | yes | yes | yes |
-| Stroke color and width | yes | yes | yes | no |
-| Opacity | yes | yes | yes | yes |
-| Layer order | yes | yes | yes | yes |
-| Text content | no | no | no | yes |
-| Font size | no | no | no | yes |
+| Modification | Rectangle | Ellipse | Triangle | Text | Compound Shape |
+|---|---|---|---|---|---|
+| Move | yes | yes | yes | yes | yes |
+| Resize (8 handles) | yes | yes | yes | yes | no |
+| Rotate | yes | yes | yes | yes | no |
+| Fill color | yes | yes | yes | yes | yes |
+| Stroke color and width | yes | yes | yes | no | yes |
+| Opacity | yes | yes | yes | yes | yes |
+| Layer order | yes | yes | yes | yes | yes |
+| Text content | no | no | no | yes | no |
+| Font size | no | no | no | yes | no |
+| Boolean combine (source) | yes | yes | yes | no | no |
 
 Notes:
 - **Triangle resize** scales the bounding box. The vertex positions are derived from the box, so the proportional shape stays fixed.
 - **Text resize** moves the hit-target rectangle and handle positions. It does not reflow or clip the text — if the visible text is wider than the W value, the handles will not line up with the text edges.
+- **Compound shape geometry** is fixed at creation. Moving the shape applies an SVG translate offset; the underlying path coordinates do not change.
 
 ## Controls
 
@@ -61,6 +66,9 @@ Notes:
 | Rotate | Drag the circular handle above the shape |
 | Delete | `Delete` / `Backspace`, or the panel button |
 | Deselect | Click empty canvas or `Esc` |
+| Subtract (cut hole) | Select shape A → panel "⊖ Subtract" → click shape B |
+| Unite (merge) | Select shape A → panel "⊕ Unite" → click shape B |
+| Cancel boolean combine | `Esc` |
 
 ### Mobile
 
@@ -73,6 +81,8 @@ The layout switches to a full-screen canvas with a floating toolbar at the botto
 | Move | One-finger drag |
 | Resize / Rotate | One-finger drag on a handle |
 | Edit properties | Tap a shape to open the properties drawer |
+| Subtract / Unite | Select shape → drawer Combine section → tap Subtract or Unite → tap second shape |
+| Cancel boolean combine | Tap Cancel in the header |
 | Delete | Tap Delete in the properties drawer |
 | Deselect | Tap empty canvas or tap Done in the header |
 
@@ -119,7 +129,13 @@ Only one shape can be selected at a time. There is no way to move, delete, or re
 There is no canvas boundary clamping and no zoom or pan. If you drag a shape off the visible area, the only way to retrieve it is to type new X/Y coordinates in the properties panel while the shape is selected — but you cannot select it once it is fully off-screen.
 
 **Triangle vertex control does not exist.**
-You can scale the triangle’s bounding box, but you cannot drag individual vertices. The three points are always recalculated from the box dimensions in a fixed proportion.
+You can scale the triangle's bounding box, but you cannot drag individual vertices. The three points are always recalculated from the box dimensions in a fixed proportion.
+
+**Compound shapes cannot be used as boolean sources.**
+Once two shapes have been combined, the result cannot be used as an input for a further subtract or unite. Only rectangles, ellipses, and triangles appear in the Combine section of the properties panel.
+
+**Subtract requires overlap for a visible hole.**
+If the two source shapes do not overlap spatially, subtract produces a path with `fill-rule="evenodd"` but no area is counted twice, so no hole appears. The result looks visually identical to a unite in that case.
 
 **No export.**
 There is no way to save the canvas as SVG, PNG, or any other format. Work is lost on page reload.
@@ -130,7 +146,7 @@ There is no way to save the canvas as SVG, PNG, or any other format. Work is los
 src/
   components/
     Canvas.jsx           SVG canvas, mouse/touch event handling
-    ShapeRenderer.jsx    Renders each shape type
+    ShapeRenderer.jsx    Renders each shape type including compound paths
     SelectionHandles.jsx Resize and rotation handles
     Toolbar.jsx          Desktop tool selector
     PropertiesPanel.jsx  Desktop properties panel
@@ -140,6 +156,7 @@ src/
   store/
     useShapes.js         Shape state (no external library)
   utils/
+    booleanOps.js        Subtract and unite shape operations
     constants.js         Shared TYPE_LABEL and TOOLS definitions
     geometry.js          Rotation, unrotation, point math
 docs/
