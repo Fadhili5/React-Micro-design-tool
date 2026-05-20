@@ -57,6 +57,22 @@ button:active {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Scrollbar styling to match the dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1f3d;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a4a7a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0099ff;
+}
+
 /* ----------------------------------------------------------------
    Feedback animations
    CSS animations only fire once per DOM insertion, so these classes

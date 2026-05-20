@@ -3,6 +3,8 @@ import ShapeRenderer from './ShapeRenderer'
 import SelectionHandles from './SelectionHandles'
 import { unrotatePoint } from '../utils/geometry'
 
+const CANVAS_PAD = 200  // extra space beyond the furthest shape edge
+
 // touches[0] is the active contact during a drag; changedTouches[0] is the touch that just ended.
 function extractPoint(e, svgRect) {
   const source = e.touches?.[0] ?? e.changedTouches?.[0] ?? e
@@ -17,6 +19,12 @@ export default function Canvas({
   const svgRef    = useRef(null)
   const dragRef   = useRef(null)
   const [hoveredId, setHoveredId] = useState(null)
+
+  // Expand the canvas to always contain all shapes plus breathing room.
+  // getBoundingClientRect on the SVG accounts for scroll position, so
+  // coordinate extraction stays correct regardless of canvas size.
+  const canvasW = shapes.reduce((m, s) => Math.max(m, s.x + s.width),  0) + CANVAS_PAD
+  const canvasH = shapes.reduce((m, s) => Math.max(m, s.y + s.height), 0) + CANVAS_PAD
 
   function getSVGPoint(e) {
     return extractPoint(e, svgRef.current.getBoundingClientRect())
@@ -138,8 +146,13 @@ export default function Canvas({
       ref={svgRef}
       style={{
         display: 'block',
-        width: '100%',
-        height: '100%',
+        // minWidth/minHeight ensure the canvas fills its container when shapes
+        // are small; explicit pixel values let it grow beyond the container
+        // when shapes extend further, making the container scroll.
+        width:     canvasW,
+        height:    canvasH,
+        minWidth:  '100%',
+        minHeight: '100%',
         cursor: tool === 'select' ? 'default' : 'crosshair',
         touchAction: 'none',
       }}

@@ -199,7 +199,10 @@ export default function App() {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Toolbar tool={tool} onToolChange={setTool} />
-        <div style={{ flex: 1, overflow: 'hidden' }}>{canvas}</div>
+        {/* overflow:auto lets the canvas scroll when shapes extend beyond the viewport */}
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {canvas}
+        </div>
         <PropertiesPanel
           shape={selectedShape}
           onUpdate={updateShape}
