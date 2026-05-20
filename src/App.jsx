@@ -1,20 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Canvas from './components/Canvas'
 import Toolbar from './components/Toolbar'
 import PropertiesPanel from './components/PropertiesPanel'
 import MobileDrawer from './components/MobileDrawer'
 import { useShapes } from './store/useShapes'
 import { useIsMobile } from './hooks/useIsMobile'
-
-const TYPE_LABEL = { rect: 'Rectangle', circle: 'Ellipse', triangle: 'Triangle', text: 'Text' }
-
-const TOOLS = [
-  { id: 'select',   icon: '↖' },
-  { id: 'rect',     icon: '▭' },
-  { id: 'circle',   icon: '○' },
-  { id: 'triangle', icon: '△' },
-  { id: 'text',     icon: 'T'  },
-]
+import { TYPE_LABEL, TOOLS } from './utils/constants'
 
 export default function App() {
   const [tool, setTool] = useState('select')
@@ -26,7 +17,6 @@ export default function App() {
     selectShape, clearSelection,
   } = useShapes()
 
-  // Keyboard shortcuts (desktop only — mobile has no physical keyboard)
   useEffect(() => {
     const onKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
@@ -49,10 +39,10 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [selectedId, deleteShape, clearSelection])
 
-  const handleAddShape = useCallback((type, x, y) => {
+  function handleAddShape(type, x, y) {
     addShape(type, x, y)
     setTool('select')
-  }, [addShape])
+  }
 
   const canvas = (
     <Canvas
@@ -69,22 +59,18 @@ export default function App() {
 
   // ----------------------------------------------------------------
   // MOBILE LAYOUT
-  // Full-screen canvas with floating header, slide-up drawer, bottom toolbar.
   // ----------------------------------------------------------------
   if (isMobile) {
     return (
       <div style={{ position: 'fixed', inset: 0, background: '#16213e', overflow: 'hidden' }}>
 
-        {/* Canvas fills the entire screen */}
         <div style={{ position: 'absolute', inset: 0 }}>
           {canvas}
         </div>
 
-        {/* Floating header */}
         <header style={{
           position: 'absolute',
           top: 0, left: 0, right: 0,
-          paddingTop: 'var(--safe-top)',
           height: 'calc(var(--header-h) + var(--safe-top))',
           background: 'rgba(15,52,96,0.90)',
           backdropFilter: 'blur(12px)',
@@ -93,10 +79,11 @@ export default function App() {
           display: 'flex',
           alignItems: 'flex-end',
           padding: '0 16px 10px',
+          paddingTop: 'var(--safe-top)',
           gap: '10px',
           zIndex: 30,
         }}>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: '#e0e0e0' }}>✦ Micro Design</span>
+          <span style={{ fontSize: '15px', fontWeight: 700, color: '#e0e0e0' }}>Micro Design</span>
           <span style={{ fontSize: '12px', color: '#6b8ab8' }}>
             {shapes.length} obj{selectedShape ? ` · ${TYPE_LABEL[selectedShape.type]}` : ''}
           </span>
@@ -119,7 +106,6 @@ export default function App() {
           )}
         </header>
 
-        {/* Slide-up properties drawer — appears above toolbar when shape is selected */}
         {selectedShape && (
           <MobileDrawer
             shape={selectedShape}
@@ -131,12 +117,10 @@ export default function App() {
           />
         )}
 
-        {/* Bottom toolbar */}
         <nav style={{
           position: 'absolute',
           bottom: 0, left: 0, right: 0,
           height: 'var(--toolbar-total)',
-          paddingBottom: 'var(--safe-bottom)',
           background: 'rgba(15,52,96,0.92)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
@@ -169,24 +153,23 @@ export default function App() {
             </button>
           ))}
 
-          {/* Delete — only shown when shape is selected */}
           <div style={{ width: '1px', height: '28px', background: '#1a4a7a', flexShrink: 0, marginLeft: '2px' }} />
           <button
-            onClick={() => { if (selectedId) { deleteShape(selectedId); clearSelection() } }}
+            onClick={() => { if (selectedId) deleteShape(selectedId) }}
             style={{
               width: '48px', height: '48px',
               border: 'none',
               borderRadius: '12px',
               background: selectedShape ? 'rgba(153,17,17,0.35)' : 'transparent',
               color: selectedShape ? '#ff6b6b' : '#2a4a7a',
-              fontSize: '20px',
+              fontSize: '16px', fontWeight: 700,
               cursor: selectedShape ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.15s, color 0.15s',
               flexShrink: 0,
             }}
           >
-            🗑
+            Del
           </button>
         </nav>
       </div>
@@ -194,7 +177,7 @@ export default function App() {
   }
 
   // ----------------------------------------------------------------
-  // DESKTOP LAYOUT (unchanged 3-column layout)
+  // DESKTOP LAYOUT
   // ----------------------------------------------------------------
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -204,7 +187,7 @@ export default function App() {
         background: '#0f3460', borderBottom: '1px solid #1a4a7a',
         flexShrink: 0,
       }}>
-        <span style={{ fontSize: '16px', fontWeight: 700, color: '#e0e0e0' }}>✦ Micro Design Tool</span>
+        <span style={{ fontSize: '16px', fontWeight: 700, color: '#e0e0e0' }}>Micro Design Tool</span>
         <span style={{ fontSize: '12px', color: '#6b8ab8' }}>
           {shapes.length} object{shapes.length !== 1 ? 's' : ''}
           {selectedShape ? ` · ${TYPE_LABEL[selectedShape.type]} selected` : ''}

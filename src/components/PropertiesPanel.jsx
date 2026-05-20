@@ -1,8 +1,5 @@
 import React from 'react'
-
-const TYPE_LABEL = {
-  rect: 'Rectangle', circle: 'Ellipse', triangle: 'Triangle', text: 'Text',
-}
+import { TYPE_LABEL } from '../utils/constants'
 
 function Label({ children }) {
   return (
@@ -23,7 +20,6 @@ function SectionTitle({ children }) {
   )
 }
 
-// Numeric input with label.
 function NumInput({ label, value, onChange, min, max, step = 1 }) {
   return (
     <div style={{ marginBottom: '8px' }}>
@@ -39,8 +35,7 @@ function NumInput({ label, value, onChange, min, max, step = 1 }) {
   )
 }
 
-// Native color picker + hex text field pair (plan.md Phase 7).
-// Color picker receives a safe 6-digit hex; text field shows the raw value (e.g. 'none').
+// Color picker requires a valid 6-digit hex; text field accepts raw values like 'none'.
 function ColorField({ label, value, onChange }) {
   const safeHex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#000000'
   return (
@@ -62,7 +57,6 @@ function ColorField({ label, value, onChange }) {
   )
 }
 
-// Main panel — architecture.md: reads shape from props, each control calls onUpdate(id, {key:val}).
 export default function PropertiesPanel({
   shape, onUpdate, onDelete, onBringToFront, onSendToBack,
 }) {
@@ -82,7 +76,6 @@ export default function PropertiesPanel({
         {TYPE_LABEL[shape.type] ?? shape.type}
       </div>
 
-      {/* Transform: X, Y, W, H, Rotation */}
       <div style={{ marginBottom: '18px' }}>
         <SectionTitle>Transform</SectionTitle>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -94,16 +87,12 @@ export default function PropertiesPanel({
         <NumInput label="Rotation (°)" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
       </div>
 
-      {/* Appearance: fill, stroke checkbox + color, stroke width, opacity */}
       <div style={{ marginBottom: '18px' }}>
         <SectionTitle>Appearance</SectionTitle>
-
         <ColorField label="Fill" value={shape.fill} onChange={upd('fill')} />
-
         {shape.type !== 'text' && (
           <>
-            {/* Checkbox to enable/disable stroke — avoids exposing 'none' to the color
-                picker input (agents.md fix: original AI draft used a text field set to 'none'). */}
+            {/* Checkbox prevents exposing 'none' to the color-picker, which requires a valid hex. */}
             <div style={{ marginBottom: '8px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input
@@ -122,7 +111,6 @@ export default function PropertiesPanel({
             )}
           </>
         )}
-
         <div style={{ marginBottom: '8px' }}>
           <Label>Opacity: {Math.round((shape.opacity ?? 1) * 100)}%</Label>
           <input
@@ -134,7 +122,6 @@ export default function PropertiesPanel({
         </div>
       </div>
 
-      {/* Text: content + font size (text shapes only) */}
       {shape.type === 'text' && (
         <div style={{ marginBottom: '18px' }}>
           <SectionTitle>Text</SectionTitle>
@@ -150,7 +137,6 @@ export default function PropertiesPanel({
         </div>
       )}
 
-      {/* Layer order */}
       <div style={{ marginBottom: '18px' }}>
         <SectionTitle>Layer</SectionTitle>
         <div style={{ display: 'flex', gap: '6px' }}>

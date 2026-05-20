@@ -1,8 +1,7 @@
 import React from 'react'
+import { TYPE_LABEL } from '../utils/constants'
 
-const TYPE_LABEL = { rect: 'Rectangle', circle: 'Ellipse', triangle: 'Triangle', text: 'Text' }
-
-// Base input style. font-size MUST be ≥16px to prevent iOS Safari from zooming on focus.
+// font-size below 16px triggers auto-zoom on iOS Safari.
 const INP = {
   width: '100%',
   padding: '10px 12px',
@@ -51,6 +50,7 @@ function NumIn({ label, value, onChange, min, max, step = 1 }) {
   )
 }
 
+// Color picker requires a valid 6-digit hex; text field accepts raw values like 'none'.
 function ColorIn({ label, value, onChange }) {
   const hex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#000000'
   return (
@@ -82,7 +82,6 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
     <div
       style={{
         position: 'absolute',
-        // Sits directly above the bottom toolbar (which includes iOS safe area).
         bottom: 'var(--toolbar-total)',
         left: 0, right: 0,
         maxHeight: '56vh',
@@ -95,7 +94,6 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
         flexDirection: 'column',
       }}
     >
-      {/* Sticky header */}
       <div style={{
         flexShrink: 0,
         padding: '0 16px 12px',
@@ -103,11 +101,9 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
         background: '#0d2b50',
         borderRadius: '20px 20px 0 0',
       }}>
-        {/* Drag pill */}
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px', paddingBottom: '8px' }}>
           <div style={{ width: '40px', height: '4px', background: '#2a4a7a', borderRadius: '2px' }} />
         </div>
-        {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ fontSize: '16px', fontWeight: 700, color: '#e0e0e0' }}>
             {TYPE_LABEL[shape.type] ?? shape.type}
@@ -130,10 +126,7 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
         </div>
       </div>
 
-      {/* Scrollable content */}
       <div className="scroll-y" style={{ flex: 1, padding: '0 16px 16px', overflowY: 'auto' }}>
-
-        {/* Transform */}
         <SectionLabel>Transform</SectionLabel>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
           <NumIn label="X" value={shape.x} onChange={upd('x')} />
@@ -143,10 +136,8 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
         </div>
         <NumIn label="Rotation °" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
 
-        {/* Appearance */}
         <SectionLabel>Appearance</SectionLabel>
         <ColorIn label="Fill" value={shape.fill} onChange={upd('fill')} />
-
         {shape.type !== 'text' && (
           <>
             <div style={{ margin: '12px 0' }}>
@@ -168,7 +159,6 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
             )}
           </>
         )}
-
         <div style={{ marginTop: '12px' }}>
           <FieldLabel>Opacity: {Math.round((shape.opacity ?? 1) * 100)}%</FieldLabel>
           <input
@@ -179,7 +169,6 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
           />
         </div>
 
-        {/* Text */}
         {shape.type === 'text' && (
           <>
             <SectionLabel>Text</SectionLabel>
@@ -196,14 +185,12 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
           </>
         )}
 
-        {/* Layer */}
         <SectionLabel>Layer</SectionLabel>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
           <button onClick={onBringToFront} style={LAYER_BTN}>▲ Bring Front</button>
           <button onClick={onSendToBack}   style={LAYER_BTN}>▼ Send Back</button>
         </div>
 
-        {/* Delete */}
         <button
           onClick={() => { onDelete(shape.id); onClose() }}
           style={{

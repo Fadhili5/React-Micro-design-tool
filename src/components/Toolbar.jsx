@@ -1,14 +1,5 @@
 import React from 'react'
-
-// 5-button vertical toolbar (plan.md Phase 8).
-// Active state driven purely by tool === id. No business logic; delegates to onToolChange.
-const TOOLS = [
-  { id: 'select',   icon: '↖', label: 'Select',   hint: 'V' },
-  { id: 'rect',     icon: '▭', label: 'Rect',     hint: 'R' },
-  { id: 'circle',   icon: '○', label: 'Ellipse',  hint: 'E' },
-  { id: 'triangle', icon: '△', label: 'Triangle', hint: 'T' },
-  { id: 'text',     icon: 'T',      label: 'Text',     hint: 'X' },
-]
+import { TOOLS } from '../utils/constants'
 
 export default function Toolbar({ tool, onToolChange }) {
   return (

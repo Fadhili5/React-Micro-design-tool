@@ -5,9 +5,8 @@ function uid() {
   return `shape-${nextId++}`
 }
 
-// Shape schema (plan.md Phase 2):
 // { id, type, x, y, width, height, fill, stroke, strokeWidth, opacity, rotation }
-// text extras: text, fontSize
+// text shapes add: text, fontSize
 function makeShape(type, x, y) {
   const base = {
     id: uid(),
@@ -41,7 +40,6 @@ function makeShape(type, x, y) {
   }
 }
 
-// 5 sample shapes so the canvas is not blank on first load.
 const INITIAL_SHAPES = [
   {
     id: 'shape-1', type: 'rect',
@@ -72,7 +70,7 @@ const INITIAL_SHAPES = [
 ]
 
 export function useShapes() {
-  const [shapes, setShapes]     = useState(INITIAL_SHAPES)
+  const [shapes, setShapes]         = useState(INITIAL_SHAPES)
   const [selectedId, setSelectedId] = useState(null)
 
   const addShape = useCallback((type, x, y) => {
@@ -108,7 +106,6 @@ export function useShapes() {
   const selectShape    = useCallback((id) => setSelectedId(id), [])
   const clearSelection = useCallback(() => setSelectedId(null), [])
 
-  // Derived — architecture.md: shapes.find(s => s.id === selectedId)
   const selectedShape = shapes.find(s => s.id === selectedId) ?? null
 
   return {
