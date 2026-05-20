@@ -3,8 +3,7 @@ import ShapeRenderer from './ShapeRenderer'
 import SelectionHandles from './SelectionHandles'
 import { unrotatePoint } from '../utils/geometry'
 
-// getSVGPoint works for both MouseEvent and TouchEvent.
-// TouchEvent uses e.touches[0] (active touch) or e.changedTouches[0] (touchend).
+// touches[0] is the active contact during a drag; changedTouches[0] is the touch that just ended.
 function extractPoint(e, svgRect) {
   const source = e.touches?.[0] ?? e.changedTouches?.[0] ?? e
   return { x: source.clientX - svgRect.left, y: source.clientY - svgRect.top }
@@ -24,7 +23,6 @@ export default function Canvas({
 
   const handleMouseMove = useCallback((e) => {
     if (!dragRef.current) return
-    // Prevent page scroll/zoom while a drag is active on touch.
     if (e.cancelable) e.preventDefault()
     const pt = getSVGPoint(e)
     const d  = dragRef.current
@@ -69,13 +67,13 @@ export default function Canvas({
     }
   }, [onUpdate])
 
-  // Attach both mouse and touch listeners to window so drag survives leaving the SVG.
+  // Attach to window so drag survives the pointer leaving the SVG boundary.
   useEffect(() => {
     const onMove = (e) => handleMouseMove(e)
     const onUp   = ()  => { dragRef.current = null }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup',   onUp)
-    // passive:false so we can call preventDefault() to block scroll during drag.
+    // passive:false lets us call preventDefault() to block scroll during a drag.
     window.addEventListener('touchmove', onMove, { passive: false })
     window.addEventListener('touchend',  onUp)
     return () => {
@@ -86,7 +84,6 @@ export default function Canvas({
     }
   }, [handleMouseMove])
 
-  // Shared handler for mouse + touch — same dragRef payload.
   const handleShapeMouseDown = useCallback((e, id) => {
     if (tool !== 'select') return
     e.stopPropagation()
@@ -143,7 +140,7 @@ export default function Canvas({
         width: '100%',
         height: '100%',
         cursor: tool === 'select' ? 'default' : 'crosshair',
-        touchAction: 'none',   // hand touch handling entirely to JS
+        touchAction: 'none',
       }}
       onMouseDown={handleCanvasMouseDown}
       onTouchStart={handleCanvasMouseDown}

@@ -4,7 +4,6 @@ function trianglePoints(x, y, w, h) {
   return `${x + w / 2},${y} ${x + w},${y + h} ${x},${y + h}`
 }
 
-// Pure render component. onMouseDown is reused for both mouse and touch events.
 export default function ShapeRenderer({ shape, onMouseDown }) {
   const {
     id, type, x, y, width, height,
@@ -41,7 +40,7 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
 
       {type === 'text' && (
         <>
-          {/* Invisible hit-rect always present (agents.md fix), handles both mouse + touch */}
+          {/* SVG text has no pointer-event fill area; transparent rect provides the hit target. */}
           <rect
             x={x} y={y} width={width} height={height}
             fill="transparent" stroke="none"
