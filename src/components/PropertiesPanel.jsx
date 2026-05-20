@@ -58,7 +58,7 @@ function ColorField({ label, value, onChange }) {
 }
 
 export default function PropertiesPanel({
-  shape, onUpdate, onDelete, onBringToFront, onSendToBack,
+  shape, onUpdate, onDelete, onBringToFront, onSendToBack, onCombine,
 }) {
   if (!shape) {
     return (
@@ -84,7 +84,9 @@ export default function PropertiesPanel({
           <NumInput label="W" value={shape.width}  onChange={v => onUpdate(shape.id, { width:  Math.max(20, v) })} min={20} />
           <NumInput label="H" value={shape.height} onChange={v => onUpdate(shape.id, { height: Math.max(20, v) })} min={20} />
         </div>
-        <NumInput label="Rotation (°)" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
+        {shape.type !== 'path' && (
+          <NumInput label="Rotation (°)" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
+        )}
       </div>
 
       <div style={{ marginBottom: '18px' }}>
@@ -134,6 +136,19 @@ export default function PropertiesPanel({
             />
           </div>
           <NumInput label="Font Size" value={shape.fontSize ?? 16} onChange={upd('fontSize')} min={8} max={120} />
+        </div>
+      )}
+
+      {shape.type !== 'path' && shape.type !== 'text' && (
+        <div style={{ marginBottom: '18px' }}>
+          <SectionTitle>Combine</SectionTitle>
+          <div style={{ fontSize: '11px', color: '#6b8ab8', marginBottom: '8px', lineHeight: 1.4 }}>
+            Then click a second shape
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => onCombine('subtract')} style={LAYER_BTN}>⊖ Subtract</button>
+            <button onClick={() => onCombine('unite')}    style={LAYER_BTN}>⊕ Unite</button>
+          </div>
         </div>
       )}
 

@@ -6,13 +6,15 @@ import MobileDrawer from './components/MobileDrawer'
 import { useShapes } from './store/useShapes'
 import { useIsMobile } from './hooks/useIsMobile'
 import { TYPE_LABEL, TOOLS } from './utils/constants'
+import { booleanSubtract, booleanUnite } from './utils/booleanOps'
 
 export default function App() {
   const [tool, setTool] = useState('select')
+  const [pendingBool, setPendingBool] = useState(null)
   const isMobile = useIsMobile()
   const {
     shapes, selectedId, selectedShape,
-    addShape, updateShape, deleteShape,
+    addShape, insertShape, updateShape, deleteShape,
     bringToFront, sendToBack,
     selectShape, clearSelection,
   } = useShapes()
@@ -30,18 +32,39 @@ export default function App() {
           if (selectedId) deleteShape(selectedId)
           break
         case 'Escape':
-          clearSelection()
-          setTool('select')
+          if (pendingBool) {
+            setPendingBool(null)
+          } else {
+            clearSelection()
+            setTool('select')
+          }
           break
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selectedId, deleteShape, clearSelection])
+  }, [selectedId, pendingBool, deleteShape, clearSelection])
 
   function handleAddShape(type, x, y) {
     addShape(type, x, y)
     setTool('select')
+  }
+
+  function handleBooleanApply(targetId) {
+    if (!pendingBool) return
+    const { op, shapeId } = pendingBool
+    if (shapeId === targetId) return
+    const shapeA = shapes.find(s => s.id === shapeId)
+    const shapeB = shapes.find(s => s.id === targetId)
+    if (!shapeA || !shapeB) return
+    const result = op === 'subtract'
+      ? booleanSubtract(shapeA, shapeB)
+      : booleanUnite(shapeA, shapeB)
+    if (!result) return
+    deleteShape(shapeId)
+    deleteShape(targetId)
+    insertShape(result)
+    setPendingBool(null)
   }
 
   const canvas = (
@@ -54,6 +77,8 @@ export default function App() {
       onUpdate={updateShape}
       tool={tool}
       onAddShape={handleAddShape}
+      pendingBool={pendingBool}
+      onBooleanApply={handleBooleanApply}
     />
   )
 
@@ -83,30 +108,55 @@ export default function App() {
           gap: '10px',
           zIndex: 30,
         }}>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: '#e0e0e0' }}>Micro Design</span>
-          <span style={{ fontSize: '12px', color: '#6b8ab8' }}>
-            {shapes.length} obj{selectedShape ? ` · ${TYPE_LABEL[selectedShape.type]}` : ''}
-          </span>
-          {selectedShape && (
-            <button
-              onClick={clearSelection}
-              style={{
-                marginLeft: 'auto',
-                padding: '5px 14px',
-                background: 'rgba(0,153,255,0.15)',
-                border: '1px solid rgba(0,153,255,0.5)',
-                borderRadius: '20px',
-                color: '#0099ff',
-                fontSize: '13px', fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Done
-            </button>
+          {pendingBool ? (
+            <>
+              <span style={{ fontSize: '13px', color: '#0099ff', fontWeight: 600 }}>
+                Tap a shape to {pendingBool.op}
+              </span>
+              <button
+                onClick={() => setPendingBool(null)}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '5px 14px',
+                  background: 'rgba(153,153,153,0.15)',
+                  border: '1px solid rgba(153,153,153,0.4)',
+                  borderRadius: '20px',
+                  color: '#9ab0cc',
+                  fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <span style={{ fontSize: '15px', fontWeight: 700, color: '#e0e0e0' }}>Micro Design</span>
+              <span style={{ fontSize: '12px', color: '#6b8ab8' }}>
+                {shapes.length} obj{selectedShape ? ` · ${TYPE_LABEL[selectedShape.type]}` : ''}
+              </span>
+              {selectedShape && (
+                <button
+                  onClick={clearSelection}
+                  style={{
+                    marginLeft: 'auto',
+                    padding: '5px 14px',
+                    background: 'rgba(0,153,255,0.15)',
+                    border: '1px solid rgba(0,153,255,0.5)',
+                    borderRadius: '20px',
+                    color: '#0099ff',
+                    fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Done
+                </button>
+              )}
+            </>
           )}
         </header>
 
-        {selectedShape && (
+        {selectedShape && !pendingBool && (
           <MobileDrawer
             shape={selectedShape}
             onUpdate={updateShape}
@@ -114,6 +164,7 @@ export default function App() {
             onBringToFront={() => bringToFront(selectedId)}
             onSendToBack={() => sendToBack(selectedId)}
             onClose={clearSelection}
+            onCombine={(op) => setPendingBool({ op, shapeId: selectedId })}
           />
         )}
 
@@ -200,7 +251,22 @@ export default function App() {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Toolbar tool={tool} onToolChange={setTool} />
         {/* overflow:auto lets the canvas scroll when shapes extend beyond the viewport */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+          {pendingBool && (
+            <div style={{
+              position: 'sticky', top: 0, left: 0,
+              width: '100%', boxSizing: 'border-box',
+              background: 'rgba(0,153,255,0.12)',
+              borderBottom: '1px solid rgba(0,153,255,0.35)',
+              color: '#0099ff',
+              fontSize: '13px', fontWeight: 600,
+              padding: '7px 16px',
+              textAlign: 'center',
+              zIndex: 5,
+            }}>
+              Click a shape to {pendingBool.op} · Esc to cancel
+            </div>
+          )}
           {canvas}
         </div>
         <PropertiesPanel
@@ -209,6 +275,7 @@ export default function App() {
           onDelete={deleteShape}
           onBringToFront={() => selectedId && bringToFront(selectedId)}
           onSendToBack={()  => selectedId && sendToBack(selectedId)}
+          onCombine={(op) => setPendingBool({ op, shapeId: selectedId })}
         />
       </div>
     </div>

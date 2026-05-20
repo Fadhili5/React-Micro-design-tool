@@ -15,6 +15,7 @@ export default function Canvas({
   shapes, selectedId, selectedShape,
   onSelect, onDeselect, onUpdate,
   tool, onAddShape,
+  pendingBool, onBooleanApply,
 }) {
   const svgRef    = useRef(null)
   const dragRef   = useRef(null)
@@ -94,6 +95,12 @@ export default function Canvas({
   }, [handleMouseMove])
 
   const handleShapeMouseDown = useCallback((e, id) => {
+    if (pendingBool) {
+      e.stopPropagation()
+      e.preventDefault()
+      onBooleanApply(id)
+      return
+    }
     if (tool !== 'select') return
     e.stopPropagation()
     e.preventDefault()
@@ -106,7 +113,7 @@ export default function Canvas({
       startX: pt.x, startY: pt.y,
       origX: shape.x, origY: shape.y,
     }
-  }, [tool, shapes, onSelect])
+  }, [tool, shapes, onSelect, pendingBool, onBooleanApply])
 
   const handleResizeStart = useCallback((e, handleId) => {
     e.preventDefault()
@@ -136,10 +143,11 @@ export default function Canvas({
   }, [selectedShape])
 
   const handleCanvasMouseDown = useCallback((e) => {
+    if (pendingBool) return
     if (tool === 'select') { onDeselect(); return }
     const pt = getSVGPoint(e)
     onAddShape(tool, pt.x, pt.y)
-  }, [tool, onDeselect, onAddShape])
+  }, [tool, onDeselect, onAddShape, pendingBool])
 
   return (
     <svg
@@ -153,7 +161,7 @@ export default function Canvas({
         height:    canvasH,
         minWidth:  '100%',
         minHeight: '100%',
-        cursor: tool === 'select' ? 'default' : 'crosshair',
+        cursor: pendingBool ? 'crosshair' : tool === 'select' ? 'default' : 'crosshair',
         touchAction: 'none',
       }}
       onMouseDown={handleCanvasMouseDown}
@@ -179,12 +187,25 @@ export default function Canvas({
       ))}
 
       {/* key={selectedId} remounts SelectionHandles on each new selection, replaying handles-in animation */}
-      {selectedShape && (
+      {selectedShape && selectedShape.type !== 'path' && (
         <SelectionHandles
           key={selectedId}
           shape={selectedShape}
           onResizeStart={handleResizeStart}
           onRotateStart={handleRotateStart}
+        />
+      )}
+      {selectedShape && selectedShape.type === 'path' && (
+        <rect
+          x={selectedShape.x - 3}
+          y={selectedShape.y - 3}
+          width={selectedShape.width + 6}
+          height={selectedShape.height + 6}
+          fill="none"
+          stroke="#0099ff"
+          strokeWidth={1.5}
+          strokeDasharray="6 3"
+          style={{ pointerEvents: 'none' }}
         />
       )}
     </svg>

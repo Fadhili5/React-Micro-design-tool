@@ -74,7 +74,7 @@ function ColorIn({ label, value, onChange }) {
   )
 }
 
-export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront, onSendToBack, onClose }) {
+export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront, onSendToBack, onClose, onCombine }) {
   if (!shape) return null
   const upd = (key) => (val) => onUpdate(shape.id, { [key]: val })
 
@@ -135,7 +135,9 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
           <NumIn label="W" value={shape.width}  onChange={v => onUpdate(shape.id, { width:  Math.max(20, v) })} min={20} />
           <NumIn label="H" value={shape.height} onChange={v => onUpdate(shape.id, { height: Math.max(20, v) })} min={20} />
         </div>
-        <NumIn label="Rotation °" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
+        {shape.type !== 'path' && (
+          <NumIn label="Rotation °" value={shape.rotation || 0} onChange={upd('rotation')} min={0} max={360} />
+        )}
 
         <SectionLabel>Appearance</SectionLabel>
         <ColorIn label="Fill" value={shape.fill} onChange={upd('fill')} />
@@ -183,6 +185,29 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
               />
             </div>
             <NumIn label="Font Size" value={shape.fontSize ?? 16} onChange={upd('fontSize')} min={8} max={120} />
+          </>
+        )}
+
+        {shape.type !== 'path' && shape.type !== 'text' && (
+          <>
+            <SectionLabel>Combine</SectionLabel>
+            <div style={{ fontSize: '13px', color: '#6b8ab8', marginBottom: '10px' }}>
+              Tap a second shape to apply
+            </div>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+              <button
+                onClick={() => { onCombine('subtract'); onClose() }}
+                style={LAYER_BTN}
+              >
+                ⊖ Subtract
+              </button>
+              <button
+                onClick={() => { onCombine('unite'); onClose() }}
+                style={LAYER_BTN}
+              >
+                ⊕ Unite
+              </button>
+            </div>
           </>
         )}
 

@@ -26,11 +26,31 @@ export default function ShapeRenderer({ shape, onMouseDown, isHovered, onHover, 
     onMouseLeave: onUnhover,
   }
 
+  const hoverStyle = isHovered ? { filter: 'drop-shadow(0 0 8px rgba(0,153,255,0.65))' } : undefined
+
+  if (type === 'path') {
+    const tx = x - (shape.bx ?? x)
+    const ty = y - (shape.by ?? y)
+    return (
+      <g
+        transform={`translate(${tx.toFixed(2)},${ty.toFixed(2)})`}
+        className="shape-new"
+        style={hoverStyle}
+      >
+        <path
+          d={shape.d}
+          fillRule={shape.fillRule || 'nonzero'}
+          {...shared}
+        />
+      </g>
+    )
+  }
+
   return (
     <g
       transform={`rotate(${rotation || 0}, ${cx}, ${cy})`}
       className="shape-new"
-      style={isHovered ? { filter: 'drop-shadow(0 0 8px rgba(0,153,255,0.65))' } : undefined}
+      style={hoverStyle}
     >
       {type === 'rect' && (
         <rect x={x} y={y} width={width} height={height} rx={2} {...shared} />

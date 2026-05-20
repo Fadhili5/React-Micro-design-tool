@@ -3,6 +3,7 @@ export const TYPE_LABEL = {
   circle: 'Ellipse',
   triangle: 'Triangle',
   text: 'Text',
+  path: 'Compound Shape',
 }
 
 export const TOOLS = [
@@ -10,5 +11,5 @@ export const TOOLS = [
   { id: 'rect',     icon: '▭', label: 'Rect',     hint: 'R' },
   { id: 'circle',   icon: '○', label: 'Ellipse',  hint: 'E' },
   { id: 'triangle', icon: '△', label: 'Triangle', hint: 'T' },
-  { id: 'text',     icon: 'T',      label: 'Text',     hint: 'X' },
+  { id: 'text',     icon: 'T', label: 'Text',     hint: 'X' },
 ]

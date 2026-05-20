@@ -7,6 +7,7 @@ function uid() {
 
 // { id, type, x, y, width, height, fill, stroke, strokeWidth, opacity, rotation }
 // text shapes add: text, fontSize
+// path shapes add: d, fillRule, bx, by
 function makeShape(type, x, y) {
   const base = {
     id: uid(),
@@ -80,6 +81,12 @@ export function useShapes() {
     return shape
   }, [])
 
+  const insertShape = useCallback((shapeData) => {
+    const shape = { id: uid(), ...shapeData }
+    setShapes(prev => [...prev, shape])
+    setSelectedId(shape.id)
+  }, [])
+
   const updateShape = useCallback((id, updates) => {
     setShapes(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s))
   }, [])
@@ -110,7 +117,7 @@ export function useShapes() {
 
   return {
     shapes, selectedId, selectedShape,
-    addShape, updateShape, deleteShape,
+    addShape, insertShape, updateShape, deleteShape,
     bringToFront, sendToBack,
     selectShape, clearSelection,
   }
