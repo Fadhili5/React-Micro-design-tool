@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react'
+import React, { useRef, useCallback, useEffect, useState } from 'react'
 import ShapeRenderer from './ShapeRenderer'
 import SelectionHandles from './SelectionHandles'
 import { unrotatePoint } from '../utils/geometry'
@@ -14,8 +14,9 @@ export default function Canvas({
   onSelect, onDeselect, onUpdate,
   tool, onAddShape,
 }) {
-  const svgRef  = useRef(null)
-  const dragRef = useRef(null)
+  const svgRef    = useRef(null)
+  const dragRef   = useRef(null)
+  const [hoveredId, setHoveredId] = useState(null)
 
   function getSVGPoint(e) {
     return extractPoint(e, svgRef.current.getBoundingClientRect())
@@ -158,11 +159,16 @@ export default function Canvas({
           key={shape.id}
           shape={shape}
           onMouseDown={handleShapeMouseDown}
+          isHovered={tool === 'select' && hoveredId === shape.id && shape.id !== selectedId}
+          onHover={tool === 'select' ? () => setHoveredId(shape.id) : undefined}
+          onUnhover={() => setHoveredId(null)}
         />
       ))}
 
+      {/* key={selectedId} remounts SelectionHandles on each new selection, replaying handles-in animation */}
       {selectedShape && (
         <SelectionHandles
+          key={selectedId}
           shape={selectedShape}
           onResizeStart={handleResizeStart}
           onRotateStart={handleRotateStart}

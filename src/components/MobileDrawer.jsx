@@ -80,6 +80,7 @@ export default function MobileDrawer({ shape, onUpdate, onDelete, onBringToFront
 
   return (
     <div
+      className="drawer-in"
       style={{
         position: 'absolute',
         bottom: 'var(--toolbar-total)',

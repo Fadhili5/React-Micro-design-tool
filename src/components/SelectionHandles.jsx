@@ -22,10 +22,6 @@ const HANDLES = [
   { id: 'w',  dx: 0,   dy: 0.5 },
 ]
 
-// Each interactive element has:
-//   - a large transparent hit target (finger-friendly, TOUCH_R radius / TOUCH_R*2 square)
-//   - a small visible indicator (pointerEvents:none so it doesn't interfere)
-// Both onMouseDown and onTouchStart are wired to the same handler.
 export default function SelectionHandles({ shape, onResizeStart, onRotateStart }) {
   const { x, y, width, height, rotation } = shape
   const cx = x + width  / 2
@@ -34,6 +30,7 @@ export default function SelectionHandles({ shape, onResizeStart, onRotateStart }
   return (
     <g
       transform={`rotate(${rotation || 0}, ${cx}, ${cy})`}
+      className="handles-in"
       style={{ pointerEvents: 'none' }}
     >
       {/* dashed bounding-box outline */}
@@ -50,7 +47,7 @@ export default function SelectionHandles({ shape, onResizeStart, onRotateStart }
         style={{ pointerEvents: 'none' }}
       />
 
-      {/* rotation handle — large transparent touch target + small visible circle */}
+      {/* rotation handle */}
       <circle
         cx={cx} cy={y - ROT} r={TOUCH_R}
         fill="transparent" stroke="none"
@@ -64,7 +61,7 @@ export default function SelectionHandles({ shape, onResizeStart, onRotateStart }
         style={{ pointerEvents: 'none' }}
       />
 
-      {/* 8 resize handles — each has a large touch target + small visible square */}
+      {/* 8 resize handles */}
       {HANDLES.map(({ id, dx, dy }) => {
         const hx = x + dx * width
         const hy = y + dy * height

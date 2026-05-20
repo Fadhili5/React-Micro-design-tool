@@ -4,7 +4,7 @@ function trianglePoints(x, y, w, h) {
   return `${x + w / 2},${y} ${x + w},${y + h} ${x},${y + h}`
 }
 
-export default function ShapeRenderer({ shape, onMouseDown }) {
+export default function ShapeRenderer({ shape, onMouseDown, isHovered, onHover, onUnhover }) {
   const {
     id, type, x, y, width, height,
     fill, stroke, strokeWidth, opacity, rotation,
@@ -20,12 +20,18 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
     strokeWidth,
     opacity,
     style: { cursor: 'move' },
-    onMouseDown: (e) => onMouseDown(e, id),
+    onMouseDown:  (e) => onMouseDown(e, id),
     onTouchStart: (e) => onMouseDown(e, id),
+    onMouseEnter: onHover,
+    onMouseLeave: onUnhover,
   }
 
   return (
-    <g transform={`rotate(${rotation || 0}, ${cx}, ${cy})`}>
+    <g
+      transform={`rotate(${rotation || 0}, ${cx}, ${cy})`}
+      className="shape-new"
+      style={isHovered ? { filter: 'drop-shadow(0 0 8px rgba(0,153,255,0.65))' } : undefined}
+    >
       {type === 'rect' && (
         <rect x={x} y={y} width={width} height={height} rx={2} {...shared} />
       )}
@@ -47,6 +53,8 @@ export default function ShapeRenderer({ shape, onMouseDown }) {
             style={{ cursor: 'move' }}
             onMouseDown={(e) => onMouseDown(e, id)}
             onTouchStart={(e) => onMouseDown(e, id)}
+            onMouseEnter={onHover}
+            onMouseLeave={onUnhover}
           />
           <text
             x={cx}
